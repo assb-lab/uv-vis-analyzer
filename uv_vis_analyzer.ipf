@@ -655,15 +655,28 @@ function calc_uvvis_fit_curve_region(wave wave_fit_new, wave wave_coef_new )
 	wave_fit_new[1] = wave_coef_new[0]+wave_coef_new[1]*x_graph_max_after
 end
 
+function ensure_linear_and_bg_fit_exist(DFREF data_folder, string y_name, string coef_linear_name, string coef_bg_name)
+	wave/Z w_linear_fit = data_folder:$(y_name+"_linear_fit")
+	wave/Z w_bg_fit = data_folder:$(y_name+"_bg_fit")
+	wave/Z coef_linear = data_folder:$coef_linear_name
+	wave/Z coef_bg = data_folder:$coef_bg_name
+
+	if(WaveExists(w_linear_fit) != 1 || WaveExists(w_bg_fit) != 1 || WaveExists(coef_linear) != 1 || WaveExists(coef_bg) != 1)
+		abort "linear_fit or bg_fit is not defined."
+	endif
+end
+
 function calc_bandgap(typ)
 	variable typ
 	DFREF data_folder = GetWavesDataFolderDFR(WaveRefIndexed("",0,1))
+	string y_name = NameOfWave(WaveRefIndexed("",0,1))
 
 	variable eg
 	string label_Eg=""
 		
 	switch(typ)	// numeric switch
 		case 3:
+			ensure_linear_and_bg_fit_exist(data_folder, y_name, "coef_bandgap_linear", "coef_bandgap_bg")
 			wave coef_BG   = data_folder:$("coef_bandgap_linear")
 			wave coef_linear = data_folder:$("coef_bandgap_bg")
 			eg = (coef_linear[0] - coef_BG[0]) / (coef_BG[1]-coef_linear[1])
@@ -677,6 +690,7 @@ function calc_bandgap(typ)
 			eg_bandgap =eg
 			break
 		case 1:	// execute if case matches expression
+			ensure_linear_and_bg_fit_exist(data_folder, y_name, "coef_direct_linear", "coef_direct_bg")
 			wave coef_BG   = data_folder:$("coef_direct_linear")
 			wave coef_linear = data_folder:$("coef_direct_bg")
 			eg = (coef_linear[0] - coef_BG[0]) / (coef_BG[1]-coef_linear[1])
@@ -690,7 +704,7 @@ function calc_bandgap(typ)
 			eg_direct =eg
 			break		// exit from switch
 	case 2:
-	
+			ensure_linear_and_bg_fit_exist(data_folder, y_name, "coef_indirect_linear", "coef_indirect_bg")
 			wave coef_BG   = data_folder:$("coef_indirect_linear")
 			wave coef_linear = data_folder:$("coef_indirect_bg")
 			print(nameOfWave(coef_BG))
