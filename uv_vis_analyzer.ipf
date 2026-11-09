@@ -1,7 +1,7 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3		// Use modern global access method and strict wave access.
 
-static StrConstant ksUVVisAnalyzerVersion = "0.0.3"
+static StrConstant ksUVVisAnalyzerVersion = "0.1.0"
 
 Menu "Macros"
 	"🔦 UV-VIS Analyzer",  init_uv_vis_analyzer()
@@ -11,6 +11,7 @@ End
 function init_uv_vis_analyzer()
 	
 	Newdatafolder/O/S root:Macro_UV_VIS
+	variable/G eg_bandgap=0
 	variable/G eg_direct=0
 	variable/G eg_indirect=0
 	Execute("uv_vis_analyzer_panel()")
@@ -22,7 +23,7 @@ end
 
 Window uv_vis_analyzer_panel() : Panel
 	PauseUpdate; Silent 1		// building window...
-	NewPanel /W=(1013,232,1479,597) as "UV-VIS-Analyzer"
+	NewPanel /W=(1013,232,1709,597) as "UV-VIS-Analyzer"
 	SetDrawLayer UserBack
 	SetDrawEnv fsize= 16
 	DrawText 15,25,"\\f00Analyze UV-VIS spectra "
@@ -31,40 +32,59 @@ Window uv_vis_analyzer_panel() : Panel
 	SetDrawEnv linethick= 2,arrow= 1,arrowfat= 0.8
 	DrawLine 117,230,117,245
 	SetDrawEnv fsize= 16
-	DrawText 15,101,"Direct Band Gap"
+	DrawText 15,101,"Band Gap"
 	SetDrawEnv linethick= 2,arrow= 1,arrowfat= 0.8
 	DrawLine 347,172,347,187
 	SetDrawEnv linethick= 2,arrow= 1,arrowfat= 0.8
 	DrawLine 347,230,347,245
 	SetDrawEnv fsize= 16
-	DrawText 245,101,"Indirect Band Gap"
+	DrawText 245,101,"Direct Band Gap"
+	SetDrawEnv linethick= 2,arrow= 1,arrowfat= 0.8
+	DrawLine 577,172,577,187
+	SetDrawEnv linethick= 2,arrow= 1,arrowfat= 0.8
+	DrawLine 577,230,577,245
+	SetDrawEnv fsize= 16
+	DrawText 475,101,"Indirect Band Gap"
 	DrawText 18,126,"Onset of absorption"
 	DrawText 245,126,"Onset of absorption"
+	DrawText 475,126,"Onset of absorption"
 	DrawText 18,187,"Background"
 	DrawText 247,187,"Background"
-	Button button_uvvis_load,pos={16.00,39.00},size={430.00,32.00},proc=ButtonProc_uvvis_load,title="Load UV-VIS spectra (*.txt)"
+	DrawText 477,187,"Background"
+	Button button_uvvis_load,pos={16.00,39.00},size={660.00,32.00},proc=ButtonProc_uvvis_load,title="Load UV-VIS spectra (*.txt)"
 	Button button_uvvis_load,fSize=16,fColor=(65535,65535,65535)
-	Button button_uvvis_direct_linear,pos={16.00,129.00},size={200.00,41.00},proc=ButtonProc_uvvis_direct_linear,title="Cursor(A, B)"
+	Button button_uvvis_bandgap_linear,pos={16.00,129.00},size={200.00,41.00},proc=ButtonProc_uvvis_bandgap_linear,title="Cursor(A, B)"
+	Button button_uvvis_bandgap_linear,fSize=15,fColor=(65535,65535,65535)
+	Button button_uvvis_bandgap_bg,pos={118.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_bandgap_bg,title="Cursor(C, D)"
+	Button button_uvvis_bandgap_bg,fSize=15
+	Button button_uvvis_calc_eg_bandgap,pos={16.00,250.00},size={200.00,40.00},proc=ButtonProc_uvvis_calc_eg_bandgap,title="Calculate \\f02E\\f00\\Bg\\M"
+	Button button_uvvis_calc_eg_bandgap,fSize=16
+	SetVariable setvar_uvvis_eg_bandgap,pos={19.00,303.00},size={200.00,26.00},title="\\f02E\\f00\\Bg \\M(eV):"
+	SetVariable setvar_uvvis_eg_bandgap,fSize=16
+	SetVariable setvar_uvvis_eg_bandgap,limits={-inf,inf,0},value= root:Macro_UV_VIS:eg_bandgap
+	Button button_uvvis_direct_linear,pos={246.00,129.00},size={200.00,41.00},proc=ButtonProc_uvvis_direct_linear,title="Cursor(A, B)"
 	Button button_uvvis_direct_linear,fSize=15,fColor=(65535,65535,65535)
-	Button button_uvvis_direct_bg,pos={118.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_direct_bg,title="Cursor(C, D)"
+	Button button_uvvis_direct_bg,pos={348.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_direct_bg,title="Cursor(C, D)"
 	Button button_uvvis_direct_bg,fSize=15
-	Button button_uvvis_calc_eg_direct,pos={16.00,250.00},size={200.00,40.00},proc=ButtonProc_uvvis_calc_eg_direct,title="Calculate \\f02E\\f00\\Bg,direct\\M"
+	Button button_uvvis_calc_eg_direct,pos={246.00,250.00},size={200.00,40.00},proc=ButtonProc_uvvis_calc_eg_direct,title="Calculate \\f02E\\f00\\Bg,direct\\M"
 	Button button_uvvis_calc_eg_direct,fSize=16
-	SetVariable setvar_uvvis_eg_direct,pos={19.00,303.00},size={200.00,26.00},title="\\f02E\\f00\\Bg,direct \\M(eV):"
+	SetVariable setvar_uvvis_eg_direct,pos={249.00,303.00},size={200.00,26.00},title="\\f02E\\f00\\Bg,direct \\M(eV):"
 	SetVariable setvar_uvvis_eg_direct,fSize=16
 	SetVariable setvar_uvvis_eg_direct,limits={-inf,inf,0},value= root:Macro_UV_VIS:eg_direct
-	Button button_uvvis_indirect_linear,pos={246.00,130.00},size={200.00,40.00},proc=ButtonProc_uvvis_indirect_linear,title="Cursor(A, B)"
+	Button button_uvvis_indirect_linear,pos={476.00,130.00},size={200.00,40.00},proc=ButtonProc_uvvis_indirect_linear,title="Cursor(A, B)"
 	Button button_uvvis_indirect_linear,fSize=15,fColor=(65535,65535,65535)
-	Button button_uvvis_indirect_bg,pos={348.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_indirect_bg,title="Cursor(C, D)"
+	Button button_uvvis_indirect_bg,pos={578.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_indirect_bg,title="Cursor(C, D)"
 	Button button_uvvis_indirect_bg,fSize=15
-	Button button_uvvis_calc_eg_indirect,pos={246.00,249.00},size={200.00,40.00},proc=ButtonProc_uvvis_calc_eg_indirect,title="Calculate \\f02E\\f00\\Bg,indirect\\M"
+	Button button_uvvis_calc_eg_indirect,pos={476.00,249.00},size={200.00,40.00},proc=ButtonProc_uvvis_calc_eg_indirect,title="Calculate \\f02E\\f00\\Bg,indirect\\M"
 	Button button_uvvis_calc_eg_indirect,fSize=16
-	SetVariable setvar_uvvis_eg_indirect,pos={249.00,302.00},size={200.00,26.00},title="\\f02E\\f00\\Bg,indirect \\M(eV):"
+	SetVariable setvar_uvvis_eg_indirect,pos={479.00,302.00},size={200.00,26.00},title="\\f02E\\f00\\Bg,indirect \\M(eV):"
 	SetVariable setvar_uvvis_eg_indirect,fSize=16
 	SetVariable setvar_uvvis_eg_indirect,limits={-inf,inf,0},value= root:Macro_UV_VIS:eg_indirect
-	Button button_uvvis_direct_bg1,pos={16.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_direct_bg_zero,title="Zero Line"
+	Button button_uvvis_bandgap_bg_zero,pos={16.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_bandgap_bg_zero,title="Zero Line"
+	Button button_uvvis_bandgap_bg_zero,fSize=15
+	Button button_uvvis_direct_bg1,pos={246.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_direct_bg_zero,title="Zero Line"
 	Button button_uvvis_direct_bg1,fSize=15
-	Button button_uvvis_indirect_bg_zero,pos={246.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_indirect_bg_zero,title="Zero Line"
+	Button button_uvvis_indirect_bg_zero,pos={476.00,190.00},size={98.00,40.00},proc=ButtonProc_uvvis_indirect_bg_zero,title="Zero Line"
 	Button button_uvvis_indirect_bg_zero,fSize=15
 EndMacro
 
@@ -75,6 +95,66 @@ Function ButtonProc_uvvis_load(ba) : ButtonControl
 		case 2: // mouse up
 			// click code here
 			uv_vis_txt_load_and_plot()
+			break
+		case -1: // control being killed
+			break
+	endswitch
+
+	return 0
+End
+
+Function ButtonProc_uvvis_bandgap_linear(ba) : ButtonControl
+	STRUCT WMButtonAction &ba
+
+	switch( ba.eventCode )
+		case 2: // mouse up
+			// click code here
+			fit_uvvis_spectra_base(NameOfWave(WaveRefIndexed("",0,1))+"_linear_fit","coef_bandgap_linear","A;B",0)
+			break
+		case -1: // control being killed
+			break
+	endswitch
+
+	return 0
+End
+
+Function ButtonProc_uvvis_bandgap_bg(ba) : ButtonControl
+	STRUCT WMButtonAction &ba
+
+	switch( ba.eventCode )
+		case 2: // mouse up
+			// click code here
+			fit_uvvis_spectra_base(NameOfWave(WaveRefIndexed("",0,1))+"_bg_fit","coef_bandgap_bg","C;D",0)
+			break
+		case -1: // control being killed
+			break
+	endswitch
+
+	return 0
+End
+
+Function ButtonProc_uvvis_bandgap_bg_zero(ba) : ButtonControl
+	STRUCT WMButtonAction &ba
+
+	switch( ba.eventCode )
+		case 2: // mouse up
+			// click code here
+			fit_uvvis_spectra_base(NameOfWave(WaveRefIndexed("",0,1))+"_bg_fit","coef_bandgap_bg","C;D",1)
+			break
+		case -1: // control being killed
+			break
+	endswitch
+
+	return 0
+End
+
+Function ButtonProc_uvvis_calc_eg_bandgap(ba) : ButtonControl
+	STRUCT WMButtonAction &ba
+
+	switch( ba.eventCode )
+		case 2: // mouse up
+			// click code here
+			calc_bandgap(3)
 			break
 		case -1: // control being killed
 			break
@@ -224,10 +304,12 @@ function uv_vis_txt_load_and_plot()
 	
 	print "output "+filename
 	
-	plot_kubelka_munk(w_km_func,w_wavelength)
+	plot_kubelka_munk_vs_photon_energy(w_km_func,w_photon_energy)
+	put_cursor_for_uv_vis_fitting()
+	plot_kubelka_munk_vs_wavelength(w_km_func,w_wavelength)
+	put_cursor_for_uv_vis_fitting()
 	plot_tauc_plot_direct(w_tauc_direct,w_photon_energy)
 	put_cursor_for_uv_vis_fitting()
-	
 	plot_tauc_plot_indirect(w_tauc_indirect,w_photon_energy)
 	put_cursor_for_uv_vis_fitting()
 	
@@ -374,20 +456,27 @@ end
 
 
 function plot_tauc_plot_direct(wave w_int,wave w_photon)
-	Display /W=(2,59,438,625) w_int vs w_photon as "tauc_plot_direct"
+	Display /W=(2,743,438,1309) w_int vs w_photon as "tauc_plot_direct"
 	set_style_for_tauc_plot_base()
 	set_style_for_tauc_plot_direct()
 end
 
 function plot_tauc_plot_indirect(wave w_int,wave w_photon)
-	Display /W=(439,59,875,625) w_int vs w_photon as  "tauc_plot_indirect"
+	Display /W=(439,743,875,1309) w_int vs w_photon as  "tauc_plot_indirect"
 	set_style_for_tauc_plot_base()
 	set_style_for_tauc_plot_indirect()
 end
 
-function plot_kubelka_munk(wave w_int,wave w_wavelength)
-	Display /W=(2,743,675,1309) w_int vs w_wavelength as "kubelka_munk"
-	set_style_for_kubelka_munk()
+function plot_kubelka_munk_vs_wavelength(wave w_int,wave w_wavelength)
+	Display /W=(439,59,875,625) w_int vs w_wavelength as "kubelka_munk_vs_wavelength"
+	set_style_for_kubelka_munk_base()
+	set_style_for_kubelka_munk_vs_wavelength()
+end
+
+function plot_kubelka_munk_vs_photon_energy(wave w_int,wave w_photon)
+	Display /W=(2,59,438,625) w_int vs w_photon as "kubelka_munk_vs_photon_energy"
+	set_style_for_kubelka_munk_base()
+	set_style_for_kubelka_munk_vs_photon_energy()
 end
 
 
@@ -413,17 +502,24 @@ function set_style_for_tauc_plot_indirect()
 	Label left "\\Z14(\\f02F\\f00(\\f02R\\f00)·\\f02hν\\f00)\\S1/2\\M\\Z14 / a.u."
 end
 
-function set_style_for_kubelka_munk()
-	ModifyGraph margin(left)=34,margin(bottom)=42,margin(top)=14,margin(right)=19,expand=-2
-	ModifyGraph gFont="Arial",gfSize=12,width=283.465,height=226.772
+function set_style_for_kubelka_munk_base()
+	ModifyGraph margin(left)=34,margin(bottom)=36,margin(top)=14,margin(right)=14,expand=-2
+	ModifyGraph gFont="Arial",gfSize=12,width=170.079,height=226.772
 	ModifyGraph tick=2
 	ModifyGraph mirror=1
-	ModifyGraph font(left)="Arial",font(bottom)="Arial"
-	ModifyGraph sep(bottom)=2
-	ModifyGraph noLabel(left)=1
-	ModifyGraph manTick(bottom)={0,200,0,0},manMinor(bottom)={1,50}
+	ModifyGraph font="Arial"
+	ModifyGraph noLabel(left)=0
 	Label left "\\Z14\\f02F\\f00(\\f02R\\f00) / a.u."
+end
+
+function set_style_for_kubelka_munk_vs_wavelength()
+	ModifyGraph sep(bottom)=2
+	ModifyGraph manTick(bottom)={0,200,0,0},manMinor(bottom)={1,50}
 	Label bottom "\\Z14Wavelength \\f02λ\\f00 / nm"
+end
+
+function set_style_for_kubelka_munk_vs_photon_energy()
+	Label bottom "Photon energy \\f02hν\\f00 / eV"
 end
 
 function put_cursor_for_uv_vis_fitting()
@@ -567,6 +663,19 @@ function calc_bandgap(typ)
 	string label_Eg=""
 		
 	switch(typ)	// numeric switch
+		case 3:
+			wave coef_BG   = data_folder:$("coef_bandgap_linear")
+			wave coef_linear = data_folder:$("coef_bandgap_bg")
+			eg = (coef_linear[0] - coef_BG[0]) / (coef_BG[1]-coef_linear[1])
+
+			label_Eg = num2str(eg)+" eV"
+			print "Eg= "+label_Eg
+			label_Eg= "\\f02E\\f00\\Bg \\M= " +label_Eg
+			TextBox/C/N=label_Eg_bandgap/F=0/B=1/A=LC/Y=42.00 label_Eg
+
+			Nvar eg_bandgap=root:Macro_UV_VIS:eg_bandgap
+			eg_bandgap =eg
+			break
 		case 1:	// execute if case matches expression
 			wave coef_BG   = data_folder:$("coef_direct_linear")
 			wave coef_linear = data_folder:$("coef_direct_bg")
