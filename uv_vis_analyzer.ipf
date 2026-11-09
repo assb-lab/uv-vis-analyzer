@@ -1,7 +1,7 @@
 #pragma TextEncoding = "UTF-8"
 #pragma rtGlobals=3		// Use modern global access method and strict wave access.
 
-static StrConstant ksUVVisAnalyzerVersion = "0.0.3"
+static StrConstant ksUVVisAnalyzerVersion = "0.1.0"
 
 Menu "Macros"
 	"🔦 UV-VIS Analyzer",  init_uv_vis_analyzer()
@@ -224,7 +224,8 @@ function uv_vis_txt_load_and_plot()
 	
 	print "output "+filename
 	
-	plot_kubelka_munk(w_km_func,w_wavelength)
+	plot_kubelka_munk_vs_wavelength(w_km_func,w_wavelength)
+	plot_kubelka_munk_vs_photon_energy(w_km_func,w_photon_energy)
 	plot_tauc_plot_direct(w_tauc_direct,w_photon_energy)
 	put_cursor_for_uv_vis_fitting()
 	
@@ -385,9 +386,16 @@ function plot_tauc_plot_indirect(wave w_int,wave w_photon)
 	set_style_for_tauc_plot_indirect()
 end
 
-function plot_kubelka_munk(wave w_int,wave w_wavelength)
-	Display /W=(2,743,675,1309) w_int vs w_wavelength as "kubelka_munk"
-	set_style_for_kubelka_munk()
+function plot_kubelka_munk_vs_wavelength(wave w_int,wave w_wavelength)
+	Display /W=(2,743,438,1309) w_int vs w_wavelength as "kubelka_munk_vs_wavelength"
+	set_style_for_kubelka_munk_base()
+	set_style_for_kubelka_munk_vs_wavelength()
+end
+
+function plot_kubelka_munk_vs_photon_energy(wave w_int,wave w_photon)
+	Display /W=(439,743,875,1309) w_int vs w_photon as "kubelka_munk_vs_photon_energy"
+	set_style_for_kubelka_munk_base()
+	set_style_for_kubelka_munk_vs_photon_energy()
 end
 
 
@@ -413,17 +421,24 @@ function set_style_for_tauc_plot_indirect()
 	Label left "\\Z14(\\f02F\\f00(\\f02R\\f00)·\\f02hν\\f00)\\S1/2\\M\\Z14 / a.u."
 end
 
-function set_style_for_kubelka_munk()
-	ModifyGraph margin(left)=34,margin(bottom)=42,margin(top)=14,margin(right)=19,expand=-2
-	ModifyGraph gFont="Arial",gfSize=12,width=283.465,height=226.772
+function set_style_for_kubelka_munk_base()
+	ModifyGraph margin(left)=34,margin(bottom)=36,margin(top)=14,margin(right)=14,expand=-2
+	ModifyGraph gFont="Arial",gfSize=12,width=170.079,height=226.772
 	ModifyGraph tick=2
 	ModifyGraph mirror=1
-	ModifyGraph font(left)="Arial",font(bottom)="Arial"
-	ModifyGraph sep(bottom)=2
+	ModifyGraph font="Arial"
 	ModifyGraph noLabel(left)=1
-	ModifyGraph manTick(bottom)={0,200,0,0},manMinor(bottom)={1,50}
 	Label left "\\Z14\\f02F\\f00(\\f02R\\f00) / a.u."
+end
+
+function set_style_for_kubelka_munk_vs_wavelength()
+	ModifyGraph sep(bottom)=2
+	ModifyGraph manTick(bottom)={0,200,0,0},manMinor(bottom)={1,50}
 	Label bottom "\\Z14Wavelength \\f02λ\\f00 / nm"
+end
+
+function set_style_for_kubelka_munk_vs_photon_energy()
+	Label bottom "Photon energy \\f02hν\\f00 / eV"
 end
 
 function put_cursor_for_uv_vis_fitting()
