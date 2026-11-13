@@ -2,8 +2,6 @@
 
 Igor Pro 8 用の手順ファイルです。UV-VIS の反射スペクトルから Kubelka-Munk 関数 F(R) と Tauc プロットを描き、バンドギャップを見積もります。
 
-ドキュメント: [UV-VIS Analyzer](https://assb-lab.github.io/uv-vis-analyzer/)
-
 ## 動作環境
 
 Igor Pro 8
