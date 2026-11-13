@@ -1,0 +1,6 @@
+title: UV-VIS Analyzer
+description: Igor Pro 8 用 UV-VIS スペクトル解析ツール
+theme: jekyll-theme-cayman
+exclude:
+  - scripts
+  - uv_vis_analyzer.ipf
